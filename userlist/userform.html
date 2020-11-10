@@ -1,0 +1,193 @@
+<html>
+	<head>
+      <!--React scripts being used-->
+        <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+  <script src='https://unpkg.com/babel-standalone@6/babel.min.js'></script>
+  <!--links for style sheet for the page-->
+  <link rel="stylesheet" href="style.css">
+    </head>
+	<body>
+		<div id="container"></div>
+		<script type='text/babel'>
+const { PureComponent } = React;
+
+class App extends PureComponent {
+   state = {
+      formState: {
+         //sets up what info needed for a new user
+         id: '',
+         firstName: "",
+         lastName: "",
+         mode: "submit"
+      },
+      users: [
+         //sets up an example user
+         {
+            id: 0,
+            firstName: "Jack",
+            lastName: "Higgins",
+            updating: false
+         }
+      ]
+   };
+
+   resetFormState = () => {
+      this.setState({
+         formState: {
+            firstName: "",
+            lastName: "",
+            mode: "submit",
+            id: ""
+         }
+      });
+   };
+
+   onChange = event => {
+      //sets the state when a change happens on the page on the formstate
+      this.setState({
+         formState: {
+            ...this.state.formState,
+            [event.target.name]: event.target.value
+         }
+      });
+   };
+
+   onSubmit = event => {
+      const { users, formState } = this.state;
+      event.preventDefault();
+      const firstName = event.target.querySelector("input[name='firstName']").value;
+      const lastName = event.target.querySelector("input[name='lastName']").value;
+      console.log("firstname is " + firstName);
+      console.log("lastname is " + lastName);
+      if (formState.mode === "submit") {
+         this.setState({
+             //sets the state for when a new user is created
+            users: [
+               ...this.state.users,
+               {
+                  firstName,
+                  lastName,
+                  updating: false,
+                  id: this.state.users[this.state.users.length - 1].id + 1
+               }
+            ]
+         });
+      } else if (formState.mode === "edit") {
+          //sets the state for when user's details are edited.
+         const index = users.find((user)=> user.id === formState.id).id;
+         users[index] = {
+                  firstName,
+                  lastName,
+                  updating: false,
+                  id: users[index].id
+               }
+         this.setState({
+            users: [...users]
+         });
+      }
+
+      this.resetFormState();
+   };
+
+   updateUser = key => {
+      let { users } = this.state;
+      //sets up key to become true so user can be edited
+      users[key].updating = true;
+      console.log("updating user " + key);
+      this.setState({
+         formState: { ...this.state.users[key], mode: "edit" },
+         users
+      });
+   };
+
+   deleteUser = key => {
+      //checks for user key and then removes user
+      console.log("deleting user " + key);
+      let { users } = this.state;
+      users.splice(key, 1);
+      this.setState({
+         //sets the deletion of the user
+         users: [...users]
+      });
+   };
+
+   render() {
+      //renders a form and table for user
+      const { users, formState } = this.state;
+      return (
+         <div>
+            <Form
+               formState={formState}
+               onChange={this.onChange}
+               onSubmit={this.onSubmit}
+            />
+            <Table
+               users={users}
+               updateUser={this.updateUser}
+               deleteUser={this.deleteUser}
+            />
+         </div>
+      );
+   }
+}
+
+const Table = ({ users = [], updateUser, deleteUser }) => {
+   return (
+      //returns the table to show to user
+      <div className="table">
+         <div className="table-body">
+            {users.map((user, key) => {
+               return (
+                  <div className={`row ${user.updating ? "updating" : ""}`}>
+                     <div className="columnFname">{user.firstName}</div>
+                     <div className="columnLname">{user.lastName}</div>
+                     <div className="columnOptions">
+                        <button onClick={() => updateUser(key)}> update User</button>
+                        <button  onClick={() => deleteUser(key)}> Delete User
+                        </button>
+                     </div>
+                  </div>
+               );
+            })}
+         </div>
+      </div>
+   );
+};
+
+const Field = ({ label = "", name = "", value = "", onChange }) => {
+   return (
+      <div className="field">
+         <label htmlFOR={name}>{label}</label>
+         <input type="text" name={name} value={value} onChange={onChange} />
+      </div>
+   );
+};
+
+const Form = ({ formState, onChange, onSubmit }) => {
+   return (
+      <form className="form" onSubmit={onSubmit}>
+         <fieldset>
+            <Field
+               name="firstName"
+               label="First name"
+               value={formState.firstName}
+               onChange={onChange}
+            />
+            <Field
+               name="lastName"
+               label="last name"
+               value={formState.lastName}
+               onChange={onChange}
+            />
+         </fieldset>
+         <button>{formState.mode}</button>
+      </form>
+   );
+};
+
+ReactDOM.render(<App />, document.getElementById("container"));
+
+        </script>
+	</body>
+</html>	
